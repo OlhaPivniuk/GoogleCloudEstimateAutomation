@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.8.34525.116
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GoogleCloudEstimateAutomation", "GoogleCloudEstimateAutomation\GoogleCloudEstimateAutomation.csproj", "{E5D7ECCA-9CB4-45ED-975F-0E3A07B54516}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GoogleCloudEstimateAutomation.Tests", "GoogleCloudEstimateAutomation.Tests\GoogleCloudEstimateAutomation.Tests.csproj", "{93874600-B35C-4995-B80B-51CAD6D48D75}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{E5D7ECCA-9CB4-45ED-975F-0E3A07B54516}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E5D7ECCA-9CB4-45ED-975F-0E3A07B54516}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E5D7ECCA-9CB4-45ED-975F-0E3A07B54516}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E5D7ECCA-9CB4-45ED-975F-0E3A07B54516}.Release|Any CPU.Build.0 = Release|Any CPU
+		{93874600-B35C-4995-B80B-51CAD6D48D75}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{93874600-B35C-4995-B80B-51CAD6D48D75}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{93874600-B35C-4995-B80B-51CAD6D48D75}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{93874600-B35C-4995-B80B-51CAD6D48D75}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {21549512-032C-4155-81FE-350DBE63AC53}
+	EndGlobalSection
+EndGlobal
