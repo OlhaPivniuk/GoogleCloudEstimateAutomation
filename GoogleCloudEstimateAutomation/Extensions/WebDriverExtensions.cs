@@ -5,6 +5,8 @@ namespace GoogleCloudEstimateAutomation.Extensions
 {
     public static class WebDriverExtensions
     {
+        private const string OptionXPath = "//span[text() = '{0}']/ancestor::li[@role = 'option']";
+
         public static void SetDropDownValue(this IWebDriver driver, IWebElement dropdown, string value)
         {
             var wait = new WebDriverWait(driver, TimeSpan.FromSeconds(5));
@@ -12,7 +14,7 @@ namespace GoogleCloudEstimateAutomation.Extensions
             dropdown.Click();
             wait.Until(_ => { return dropdown.GetAttribute("aria-expanded") == "true"; });
 
-            IWebElement option = driver.FindElement(By.XPath($"//span[text() = '{value}']/ancestor::li[@role = 'option']"));
+            IWebElement option = driver.FindElement(By.XPath(string.Format(OptionXPath, value)));
 
             driver.JsClick(option);
             wait.Until(_ => { return dropdown.GetAttribute("aria-expanded") == "false"; });

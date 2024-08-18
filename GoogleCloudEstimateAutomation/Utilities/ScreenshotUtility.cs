@@ -4,16 +4,16 @@ namespace GoogleCloudEstimateAutomation.Utilities
 {
     public class ScreenshotUtility
     {
-        private readonly IWebDriver driver;
+        private readonly IWebDriver _driver;
 
         public ScreenshotUtility(IWebDriver driver)
         {
-            this.driver = driver;
+            this._driver = driver;
         }
 
         public void TakeScreenshot(string filePath)
         {
-            Screenshot screenshot = ((ITakesScreenshot)driver).GetScreenshot();
+            Screenshot screenshot = ((ITakesScreenshot)_driver).GetScreenshot();
             screenshot.SaveAsFile(filePath);
         }
     }

@@ -5,24 +5,27 @@ namespace GoogleCloudEstimateAutomation.Pages
 {
     public class PricingCalculatorPage
     {
-        private readonly IWebDriver driver;
-        private readonly WebDriverWait wait;
+        private readonly IWebDriver _driver;
+        private readonly WebDriverWait _wait;
+
+        private const string AddToEstimateButtonXPath = "//span[text()='Add to estimate']/ancestor::button";
+        private const string ComputeEngineButtonXPath = "//*[text()='Compute Engine']/parent::div";
 
         public PricingCalculatorPage(IWebDriver webDriver)
         {
-            driver = webDriver;
-            wait = new WebDriverWait(webDriver, TimeSpan.FromSeconds(5));
+            _driver = webDriver;
+            _wait = new WebDriverWait(webDriver, TimeSpan.FromSeconds(5));
         }
 
-        private IWebElement AddToEstimateButton => driver.FindElement(By.XPath("//span[text()='Add to estimate']/ancestor::button"));
-        private IWebElement ComputeEngineButton => driver.FindElement(By.XPath("//*[text()='Compute Engine']/parent::div"));
+        private IWebElement AddToEstimateButton => _driver.FindElement(By.XPath(AddToEstimateButtonXPath));
+        private IWebElement ComputeEngineButton => _driver.FindElement(By.XPath(ComputeEngineButtonXPath));
 
 
-        public void ClickAdd() => AddToEstimateButton.Click();
+        public void ClickAddToEstimate() => AddToEstimateButton.Click();
 
-        public void ClickComputeEngine() => ComputeEngineButton.Click();
+        public void SelectComputeEngine() => ComputeEngineButton.Click();
 
-        public void WaitForAddToEstimateFrame() => wait.Until(_ => ComputeEngineButton.Displayed);
+        public void WaitForEstimateFrameToLoad() => _wait.Until(_ => ComputeEngineButton.Displayed);
 
     }
 }

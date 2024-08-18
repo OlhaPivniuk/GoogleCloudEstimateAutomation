@@ -1,104 +1,133 @@
 using GoogleCloudEstimateAutomation.Drivers;
 using GoogleCloudEstimateAutomation.Models;
-using GoogleCloudEstimateAutomation.Pages; 
+using GoogleCloudEstimateAutomation.Pages;
 using GoogleCloudEstimateAutomation.Utilities;
 using Microsoft.Extensions.Configuration;
-using NUnit.Framework;
 using OpenQA.Selenium;
 
 namespace GoogleCloudEstimateAutomation.Tests
 {
     [TestFixture]
-    public sealed class GoogleCloudCalculatorTests : IDisposable
+    public sealed class GoogleCloudCalculatorTests
     {
-        private readonly IWebDriver webDriver;
-        private readonly ComputeInstanceConfig generalPurposeConfiguration;
-        private readonly ScreenshotUtility screenshotHelper;
-        private bool testFailed = true;
-        private readonly IConfigurationRoot configuration;
+        private IWebDriver _driver;
+        private ComputeInstanceConfig _instanceConfig;
+        private ScreenshotUtility _screenshotUtility;
+        private IConfigurationRoot _configuration;
+        private CostEstimateSummaryPage _summaryPage;
 
-        public GoogleCloudCalculatorTests()
+        [OneTimeSetUp]
+        public void OneTimeSetUp()
         {
-            var env = Environment.GetEnvironmentVariable("TEST_ENVIRONMENT");
-            configuration = new ConfigurationBuilder()
+            string environment = Environment.GetEnvironmentVariable("TEST_ENVIRONMENT") ?? "Development";
+            _configuration = new ConfigurationBuilder()
                 .AddJsonFile("appsettings.json", optional: false)
-                .AddJsonFile($"appsettings.{env}.json", optional: true)
+                .AddJsonFile($"appsettings.{environment}.json", optional: true)
                 .Build();
 
-            webDriver = Drivers.WebDriverManager.GetDriver(configuration["browser"]!);
-            webDriver.Url = configuration["baseURL"];
+            _driver = WebDriverFactory.GetDriver(_configuration["browser"]!);
+            _driver.Url = _configuration["baseURL"];
 
-            generalPurposeConfiguration = TestDataUtility.Get(configuration["testData"] ?? "FreeGeneralPurposeConfig.json");
+            _instanceConfig = TestDataUtility.Get(_configuration["TestDataFile"] ?? "FreeGeneralPurposeConfig.json");
 
-            screenshotHelper = new ScreenshotUtility(webDriver);
+            _screenshotUtility = new ScreenshotUtility(_driver);
+
+            ConfigureComputeEngine();
+
+            _driver.SwitchTo().Window(_driver.WindowHandles[1]);
+            _summaryPage = new CostEstimateSummaryPage(_driver);
+            _summaryPage.WaitForPageToLoad();
         }
 
-        public void Dispose()
+        [OneTimeTearDown]
+        public void OneTimeTearDown()
         {
-            if (testFailed)
+            if (TestContext.CurrentContext.Result.Outcome.Status == NUnit.Framework.Interfaces.TestStatus.Failed)
             {
-                string filePath = configuration["screenshotsPath"];
+                string screenshotPath = _configuration["screenshotsPath"];
                 string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
-                Directory.CreateDirectory(filePath);
-                screenshotHelper.TakeScreenshot(Path.Combine(filePath, $"failure_{timestamp}.png"));
+                Directory.CreateDirectory(screenshotPath);
+                _screenshotUtility.TakeScreenshot(Path.Combine(screenshotPath, $"failure_{timestamp}.png"));
             }
 
-            Drivers.WebDriverManager.CloseDriver();
+            WebDriverFactory.QuitDriver();
         }
 
-        private void ConfigureProducts()
+        private void ConfigureComputeEngine()
         {
-            var pricingCalculatorPage = new PricingCalculatorPage(webDriver);
+            var pricingCalculatorPage = new PricingCalculatorPage(_driver);
 
-            pricingCalculatorPage.ClickAdd();
-            pricingCalculatorPage.WaitForAddToEstimateFrame();
-            pricingCalculatorPage.ClickComputeEngine();
+            pricingCalculatorPage.ClickAddToEstimate();
+            pricingCalculatorPage.WaitForEstimateFrameToLoad();
+            pricingCalculatorPage.SelectComputeEngine();
 
-            var computeEnginePage = new ComputeEnginePage(webDriver);
-            computeEnginePage.WaitForPageLoaded();
+            var computeEnginePage = new ComputeEnginePage(_driver);
+            computeEnginePage.WaitForPageToLoad();
 
-            computeEnginePage.EnterNumberOfInstances(generalPurposeConfiguration.NumberOfInstances);
-            computeEnginePage.SetSoftware(generalPurposeConfiguration.Software);
+            computeEnginePage.EnterNumberOfInstances(_instanceConfig.NumberOfInstances);
+            computeEnginePage.SelectSoftware(_instanceConfig.Software);
 
-            computeEnginePage.SetProvisioningModel();
-            computeEnginePage.SetMachineFamily(generalPurposeConfiguration.MachineFamily);
-            computeEnginePage.SetSeries(generalPurposeConfiguration.Series);
-            computeEnginePage.SetMachineType(generalPurposeConfiguration.MashineType);
+            computeEnginePage.SelectProvisioningModel();
+            computeEnginePage.SelectMachineFamily(_instanceConfig.MachineFamily);
+            computeEnginePage.SelectSeries(_instanceConfig.Series);
+            computeEnginePage.SelectMachineType(_instanceConfig.MashineType);
 
             computeEnginePage.AddGPU();
-            computeEnginePage.WaitUntilCostUpdated();
+            computeEnginePage.WaitUntilCostIsUpdated();
 
-            computeEnginePage.SetGpuModel(generalPurposeConfiguration.GpuType);
-            computeEnginePage.SetGpuNumber(generalPurposeConfiguration.GpusNumber);
+            computeEnginePage.SelectGpuModel(_instanceConfig.GpuType);
+            computeEnginePage.SelectGpuNumber(_instanceConfig.GpusNumber);
 
-            computeEnginePage.SetLocalSSD(generalPurposeConfiguration.LocalSSD);
+            computeEnginePage.SelectLocalSSD(_instanceConfig.LocalSSD);
 
-            computeEnginePage.SetRegion(generalPurposeConfiguration.Region);
-            computeEnginePage.WaitUntilCostUpdated();
+            computeEnginePage.SelectRegion(_instanceConfig.Region);
+            computeEnginePage.WaitUntilCostIsUpdated();
 
-            computeEnginePage.ShareClick();
+            computeEnginePage.ClickShare();
             computeEnginePage.WaitForShareFrame();
-            computeEnginePage.OpenEstimatedCost();
+            computeEnginePage.OpenEstimateSummary();
         }
 
         [Test]
-        public void CostEstimateTableTest()
+        public void VerifyNumberOfInstances()
         {
-            ConfigureProducts();
+            Assert.That(_summaryPage.GetItemValue("Number of Instances"), Is.EqualTo(_instanceConfig.NumberOfInstances));
+        }
 
-            webDriver.SwitchTo().Window(webDriver.WindowHandles[1]);
-            var summaryPage = new CostEstimateSummaryPage(webDriver);
-            summaryPage.WaitForPageLoaded();
+        [Test]
+        public void VerifySoftware()
+        {
+            Assert.That(_summaryPage.GetItemValue("Operating System / Software"), Is.EqualTo(_instanceConfig.Software));
+        }
 
-            Assert.AreEqual(generalPurposeConfiguration.NumberOfInstances, summaryPage.GetItemValue("Number of Instances"));
-            Assert.AreEqual(generalPurposeConfiguration.Software, summaryPage.GetItemValue("Operating System / Software"));
-            Assert.That(summaryPage.GetItemValue("Machine type"), Contains.Substring(generalPurposeConfiguration.MashineType));
-            Assert.AreEqual(generalPurposeConfiguration.GpuType, summaryPage.GetItemValue("GPU Model"));
-            Assert.AreEqual(generalPurposeConfiguration.GpusNumber, summaryPage.GetItemValue("Number of GPUs"));
-            Assert.AreEqual(generalPurposeConfiguration.LocalSSD, summaryPage.GetItemValue("Local SSD"));
-            Assert.AreEqual(generalPurposeConfiguration.Region, summaryPage.GetItemValue("Region"));
+        [Test]
+        public void VerifyMachineType()
+        {
+            Assert.That(_summaryPage.GetItemValue("Machine type"), Does.Contain(_instanceConfig.MashineType));
+        }
 
-            testFailed = false;
+        [Test]
+        public void VerifyGpuModel()
+        {
+            Assert.That(_summaryPage.GetItemValue("GPU Model"), Is.EqualTo(_instanceConfig.GpuType));
+        }
+
+        [Test]
+        public void VerifyGpuNumber()
+        {
+            Assert.That(_summaryPage.GetItemValue("Number of GPUs"), Is.EqualTo(_instanceConfig.GpusNumber));
+        }
+
+        [Test]
+        public void VerifyLocalSSD()
+        {
+            Assert.That(_summaryPage.GetItemValue("Local SSD"), Is.EqualTo(_instanceConfig.LocalSSD));
+        }
+
+        [Test]
+        public void VerifyRegion()
+        {
+            Assert.That(_summaryPage.GetItemValue("Region"), Is.EqualTo(_instanceConfig.Region));
         }
     }
 }

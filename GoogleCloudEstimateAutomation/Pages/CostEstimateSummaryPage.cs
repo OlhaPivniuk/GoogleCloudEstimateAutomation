@@ -5,28 +5,32 @@ namespace GoogleCloudEstimateAutomation.Pages
 {
     public class CostEstimateSummaryPage
     {
-        private readonly IWebDriver driver;
-        private readonly WebDriverWait wait;
+        private readonly IWebDriver _driver;
+        private readonly WebDriverWait _wait;
+
+        private const string CostItemValueXPath = "//span[text() = '{0}']/following-sibling::span";
+        private const string PageLoadedXPath = "//h4[text() = 'Cost Estimate Summary']";
 
         public CostEstimateSummaryPage(IWebDriver webDriver)
         {
-            driver = webDriver;
-            wait = new WebDriverWait(webDriver, TimeSpan.FromSeconds(10));
+            _driver = webDriver;
+            _wait = new WebDriverWait(webDriver, TimeSpan.FromSeconds(10));
         }
 
         public void Navigate(string url)
         {
-            driver.Navigate().GoToUrl(url);
+            _driver.Navigate().GoToUrl(url);
         }
 
         public string GetItemValue(string costItem)
         {
-            return driver.FindElement(By.XPath($"//span[text() = '{costItem}']/following-sibling::span")).Text;
+            var element = _driver.FindElement(By.XPath(string.Format(CostItemValueXPath, costItem)));
+            return element?.Text ?? string.Empty;
         }
 
-        public void WaitForPageLoaded()
+        public void WaitForPageToLoad()
         {
-            wait.Until(driver => driver.FindElement(By.XPath("//h4[text() = 'Cost Estimate Summary']")).Displayed);
+            _wait.Until(driver => driver.FindElement(By.XPath(PageLoadedXPath)).Displayed);
         }
     }
 }

@@ -6,41 +6,42 @@ using WebDriverManager.DriverConfigs.Impl;
 
 namespace GoogleCloudEstimateAutomation.Drivers
 {
-    public class WebDriverManager
+    public class WebDriverFactory
     {
-        private static IWebDriver? driver;
+        private static IWebDriver? _driver;
 
-        private WebDriverManager() { }
+        private WebDriverFactory() { }
 
-        public static IWebDriver GetDriver(string browser)
+        public static IWebDriver GetDriver(string browserType)
         {
-            if (driver == null)
+            if (_driver == null)
             {
-                switch (browser)
+                switch (browserType)
                 {
                     case "firefox":
                         {
                             new DriverManager().SetUpDriver(new FirefoxConfig());
-                            driver = new FirefoxDriver();
+                            _driver = new FirefoxDriver();
                             break;
                         }
                     default:
                         {
                             new DriverManager().SetUpDriver(new ChromeConfig());
-                            driver = new ChromeDriver();
+                            _driver = new ChromeDriver();
                             break;
                         }
                 }
 
-                driver.Manage().Window.Maximize();
+                _driver.Manage().Window.Maximize();
             }
 
-            return driver;
+            return _driver;
         }
 
-        public static void CloseDriver()
+        public static void QuitDriver()
         {
-            driver?.Quit();
+            _driver?.Quit();
+            _driver = null;
         }
     }
 
